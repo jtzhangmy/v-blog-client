@@ -11,6 +11,7 @@
   "dependencies": {
     "express": "^4.14.0",
     "vue": "^2.1.0",
+    "vue-file-upload": "^0.1.0",
     "vue-resource": "^1.0.3",
     "vue-router": "^2.1.1"
   },

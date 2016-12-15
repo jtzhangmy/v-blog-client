@@ -10,15 +10,13 @@ Vue.use(VueResource);
 import Register from './component/register.vue'
 import Login from './component/login.vue'
 import ArticleList from './component/articleList.vue'
+import ArticleDetail from './component/articleDetail.vue'
 
 
 const Article = {
   template: `<h1>Article</h1>`
 };
 
-const ArticleDetail = {
-  template: `<h1>{{$route.params.articleId}}</h1>`
-};
 
 const routes = [
   {

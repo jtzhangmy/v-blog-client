@@ -26,7 +26,7 @@
                 <span class="ion-ios-plus-empty home-aside-add-icon" @click="showAddArticle()"></span>
             </div>
         </div>
-        <router-view></router-view>
+        <router-view class="col-md-10"></router-view>
         <!--添加文章-->
         <div class="home-header-add-article" v-show="addingArticle">
             <h3 class="home-header-add-title">添加文章</h3>
@@ -67,6 +67,7 @@
         padding-left: 30px;
         color: #aaa;
         border-right: 1px solid #ddd;
+        height: 100%;
     }
 
     .home-aside-tt{

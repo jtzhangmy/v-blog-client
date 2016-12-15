@@ -79,7 +79,8 @@
                                 if (resData.reg == 'success') {
                                     alert('注册成功');
                                     Cookie.set('username', this.username);
-                                    router.push({path: '/'});
+                                    Cookie.set('userId', resData.userId)
+                                    this.$router.push({path: '/'});
                                 } else if (resData.reg == 'error') {
                                     alert('注册失败');
                                 } else if (resData.reg == 'exist') {
