@@ -89,7 +89,7 @@ export default {
             function (res) {
               var classifyData = res.data;
               this.classifies = classifyData;
-              console.log(classifyData)
+//              console.log(classifyData)
             },
             function (res) {
               console.error('get classify error');
@@ -196,76 +196,9 @@ export default {
     text-decoration: none;
   }
 
-  .login-content{
-    width: 100%;
-    height: 100%;
-  }
-
   #app {
     width: 100%;
     height: 100%;
-  }
-
-  .login{
-    overflow: hidden;
-    background: #fff;
-    width: 400px;
-    height: 300px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -150px;
-    margin-left: -200px;
-    padding: 15px;
-    z-index: 9002;
-  }
-
-  .login-exist{
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    font-size: 24px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    color: #bbb;
-    text-align: center;
-    line-height: 24px;
-  }
-
-  .login-exist:before{
-    font-weight: 700;
-  }
-
-  .login-title{
-    text-align: center;
-  }
-
-  .input-label{
-    font-size: 16px;
-  }
-
-  .btn-row{
-    text-align: center;
-    margin-top: 30px;
-  }
-
-  .btn-row .btn{
-    margin: 0 20px;
-  }
-
-  .mask{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    z-index: 9001;
-    top: 0;
-    left: 0;
-    background-color: #000;
-    opacity: 0.3;
-    display: none;
   }
 
   .home-header{

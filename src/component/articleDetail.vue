@@ -1,17 +1,153 @@
 <template>
     <div class="article-detail">
-        <input type="text" v-model="articleTitle" class="input-article-title">
-        <textarea v-model="articleCtx" cols="150" rows="500" class="input-article-ctx">
-
-        </textarea>
-        <form action="http://127.0.0.1:3000/blogData/image" id="form">
+        <div v-show="!editArticle">
+            <h2>{{articleTitle}}</h2>
+            <div>
+                <span>作者:{{articleData.author}}</span>
+            </div>
+            <div v-html="articleCtx"></div>
+            <button class="article-edit" v-if='edit' @click="editTheArticle()">编辑文章</button>
+        </div>
+        <div v-show="editArticle">
+            <input type="text" v-model="articleTitle" class="input-article-title">
+            <textarea v-model="articleCtx" cols="150" rows="500" class="input-article-ctx"></textarea>
             <input type="file" name="image" class="input-article-image" @change="onFileChange">
-        </form>
-        <button class="input-article-submit" @click="submitArticle($route.params.articleId)">提交</button>
+            <div class="input-article-btn">
+                <button class="input-article-submit" @click="submitArticle($route.params.articleId)">提交</button>
+                <button class="input-article-cancel" @click="cancel()">取消</button>
+            </div>
+        </div>
+
 
     </div>
 </template>
 <style>
+    table {
+        margin: 10px 0 15px 0;
+        border-collapse: collapse;
+    }
+    td,th {
+        border: 1px solid #ddd;
+        padding: 3px 10px;
+    }
+    th {
+        padding: 5px 10px;
+    }
+
+    a {
+        color: #0069d6;
+    }
+    a:hover {
+        color: #0050a3;
+        text-decoration: none;
+    }
+    a img {
+        border: none;
+    }
+    p {
+        margin-bottom: 9px;
+    }
+    h1,h2,h3,h4,h5,h6 {
+        line-height: 36px;
+    }
+    h1 {
+        margin-bottom: 18px;
+        font-size: 30px;
+    }
+    h2 {
+        font-size: 24px;
+    }
+    h3 {
+        font-size: 18px;
+    }
+    h4 {
+        font-size: 16px;
+    }
+    h5 {
+        font-size: 14px;
+    }
+    h6 {
+        font-size: 13px;
+    }
+    hr {
+        margin: 0 0 19px;
+        border: 0;
+        border-bottom: 1px solid #ccc;
+    }
+    blockquote {
+        padding: 13px 13px 21px 15px;
+        margin-bottom: 18px;
+        font-family:georgia,serif;
+        font-style: italic;
+    }
+    blockquote:before {
+        content:"\201C";
+        font-size:40px;
+        margin-left:-10px;
+        font-family:georgia,serif;
+        color:#eee;
+    }
+    blockquote p {
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 18px;
+        margin-bottom: 0;
+        font-style: italic;
+    }
+    code, pre {
+        font-family: Monaco, Andale Mono, Courier New, monospace;
+    }
+    code {
+        background-color: #fee9cc;
+        color: rgba(0, 0, 0, 0.75);
+        padding: 1px 3px;
+        font-size: 12px;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+    }
+    pre {
+        display: block;
+        padding: 14px;
+        margin: 0 0 18px;
+        line-height: 16px;
+        font-size: 11px;
+        border: 1px solid #d9d9d9;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    pre code {
+        background-color: #fff;
+        color:#737373;
+        font-size: 11px;
+        padding: 0;
+    }
+    sup {
+        font-size: 0.83em;
+        vertical-align: super;
+        line-height: 0;
+    }
+    img {
+        display: block;
+    }
+    * {
+        -webkit-print-color-adjust: exact;
+    }
+    @media screen and (min-width: 914px) {
+        body {
+            width: 854px;
+            margin:10px auto;
+        }
+    }
+    @media print {
+        body,code,pre code,h1,h2,h3,h4,h5,h6 {
+            color: black;
+        }
+        table, pre {
+            page-break-inside: avoid;
+        }
+    }
+
     .article-detail {
         height: 100%;
         padding: 20px;
@@ -40,35 +176,94 @@
 
     }
 
+    .input-article-btn {
+        width: 100%;
+        text-align: center;
+        margin: 20px 0;
+    }
+
     .input-article-submit {
-        display: block;
+        display: inline-block;
         width: 60px;
         height: 30px;
         border-radius: 5px;
         border: none;
         background-color: #00b3ee;
         color: #fff;
+        margin: 0 10px;
+    }
+
+    .input-article-cancel {
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #dca7a7;
+        color: #fff;
+        margin: 0 10px;
+    }
+
+    .article-edit {
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #00b3ee;
+        color: #fff;
+        margin: 0 10px;
     }
 </style>
 <script>
     import vueFileUpload from 'vue-file-upload'
     export default{
+        props:['articleId', 'edit'],
         data(){
             return{
                 articleTitle: '',
                 articleCtx: '',
                 image: '',
-                images: []
+                imageName: '',
+                articleData: '',
+                editArticle: false
             }
         },
         mounted: function () {
-            /*document.querySelector('input[type="file"]').addEventListener('change', function(e) {
-                var blob = this.files[0];
-                console.log(blob);
-            })*/
+            var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
+            this.$http.get(getArticleUrl, {emulateJSON: true})
+                .then(
+                    function (res) {
+                        this.articleData = res.data;
+                        this.articleTitle = this.articleData.title;
+                        var articleCtx = this.articleData.articleCtx;
+                        this.articleCtx = markdown.toHTML(articleCtx);
+                    },
+                    function (res) {
+
+                    }
+                )
+        },
+        watch:{
+            articleId: function () {
+                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
+                this.$http.get(getArticleUrl, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            this.articleData = res.data;
+                            this.articleTitle = this.articleData.title;
+                            var articleCtx = this.articleData.articleCtx;
+                            this.articleCtx = markdown.toHTML(articleCtx);
+                        },
+                        function (res) {
+
+                        }
+                    )
+            }
         },
         methods: {
             submitArticle: function (articleId) {
+                var vm = this;
                 var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
                 var articleUpdateData = {
                     title: this.$data.articleTitle,
@@ -79,6 +274,7 @@
                         function (res) {
                             var articleUpdateStatus = res.data.updateStatus
                             if (articleUpdateStatus == 'success') {
+                                vm.getArticleData();
                                 alert('修改文章成功');
                             } else{
                                 alert('修改文章失败1');
@@ -89,44 +285,50 @@
                         }
                     )
             },
+            // 当文件改变时
             onFileChange: function (e) {
                 var files = e.target.files || e.dataTransfer.files;
-                this.articleCtx += e.target.files[0].name;
-                console.log(e.target.files[0].name)
+//                this.articleCtx += e.target.files[0].name;
+                console.log(e.target.files[0].name);
+                this.imageName = e.target.files[0].name;
                 if (!files.length)return;
                 this.createImage(files);
             },
+            // 将图片转为base64
             createImage: function (file) {
                 if(typeof FileReader==='undefined'){
                     alert('您的浏览器不支持图片上传，请升级您的浏览器');
                     return false;
                 }
-                var vm = this;
+                var vm = this; //作用域
                 var reader = new FileReader();
                 reader.readAsDataURL(file[0]);
                 reader.onload =function(e){
-                    vm.images.push(e.target.result);
+                    vm.image = e.target.result;
+                    vm.uploadImage();
                 };
-                vm.uploadImage();
             },
-            uploadImage: function (e) {
+            // 上传图片
+            uploadImage: function () {
                 var vm = this;
                 var imageAddUrl = "http://127.0.0.1:3000/blogData/image";
                 var imageAddData = {
-                    imageData: this.images
+                    imageData: this.image
                 };
-                setTimeout(function () {
-                    console.log(imageAddData.imageData[0]);
-                    vm.$http.post(imageAddUrl, imageAddData, {emulateJSON: true})
-                        .then(
-                            function (res) {
-                            console.log(typeof imageAddData.imageData[0]);
-                            },
-                            function (res) {
+                console.log(imageAddData);
+                vm.$http.post(imageAddUrl, imageAddData, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var resImgData = res.data;
+                            var imgPath = resImgData.imgPath;
+                            var imageName = vm.imageName;
+                            console.log(imgPath);
+                            vm.articleCtx += `![${imageName}](http://127.0.0.1:3000/${imgPath})`;
+                        },
+                        function (res) {
 
-                            }
-                        )
-                }, 1);
+                        }
+                    );
 
 
                 /*var form = document.getElementById('form');
@@ -142,6 +344,27 @@
                 };
                    */
 
+            },
+            getArticleData: function () {
+                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
+                this.$http.get(getArticleUrl, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            this.articleData = res.data;
+                            this.articleTitle = this.articleData.title;
+                            var articleCtx = this.articleData.articleCtx;
+                            this.articleCtx = markdown.toHTML(articleCtx);
+                        },
+                        function (res) {
+
+                        }
+                    )
+            },
+            editTheArticle: function () {
+                this.editArticle = true;
+            },
+            cancel: function () {
+                this.editArticle = false;
             }
         }
     }

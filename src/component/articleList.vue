@@ -26,7 +26,7 @@
                 <span class="ion-ios-plus-empty home-aside-add-icon" @click="showAddArticle()"></span>
             </div>
         </div>
-        <router-view class="col-md-10"></router-view>
+        <router-view class="col-md-10" :articleId="this.$route.params.articleId" :edit="edit"></router-view>
         <!--添加文章-->
         <div class="home-header-add-article" v-show="addingArticle">
             <h3 class="home-header-add-title">添加文章</h3>
@@ -128,20 +128,6 @@
         color: #259ffe;
     }
 
-    .home-header-input{
-        width: 100%;
-        height: 40px;
-        margin-top: 20px;
-        padding: 5px 15px;
-    }
-
-    .home-header-input-article{
-        width: 100%;
-        height: 40px;
-        margin-top: 20px;
-        padding: 5px 15px;
-    }
-
     .home-header-add-btn{
         text-align: center;
         margin-top: 20px;
@@ -202,14 +188,13 @@
             }
         },
         mounted: function () {
-            console.log(typeof this.edit);
             var articleListUrl = 'http://127.0.0.1:3000/blogData/articleList/' + this.classifyId;
             this.$http.get(articleListUrl, {}, {emulateJSON: true})
                 .then(
                     function (res) {
                         var classifyData = res.data;
                         this.articles = classifyData[0].articleList;
-                        console.log(classifyData[0].articleList)
+//                        console.log(classifyData[0].articleList)
                     },
                     function (res) {
                         console.error('get classify error');
@@ -242,6 +227,7 @@
                 var articleAddUrl = "http://127.0.0.1:3000/blogData/articleList/" + classify;
                 var articleAddData = {
                     title: this.articleAddTitle,
+                    author: Cookie.get('username'),
                     type: this.articleType,
                     classify: classify
                 };
