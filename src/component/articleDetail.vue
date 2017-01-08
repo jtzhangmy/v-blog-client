@@ -1,6 +1,6 @@
 <template>
     <div class="article-detail">
-        <div v-show="!editArticle">
+        <div v-show="!editArticle" class="article-content">
             <h2>{{articleTitle}}</h2>
             <div>
                 <span>作者:{{articleData.author}}</span>
@@ -8,9 +8,10 @@
             <div v-html="articleCtx"></div>
             <button class="article-edit" v-if='edit' @click="editTheArticle()">编辑文章</button>
         </div>
-        <div v-show="editArticle">
+        
+        <div v-show="editArticle" class="editor">
             <input type="text" v-model="articleTitle" class="input-article-title">
-            <textarea v-model="articleCtx" cols="150" rows="500" class="input-article-ctx"></textarea>
+            <textarea v-model="articleCtxMd" cols="150" rows="500" class="input-article-ctx"></textarea>
             <input type="file" name="image" class="input-article-image" @change="onFileChange">
             <div class="input-article-btn">
                 <button class="input-article-submit" @click="submitArticle($route.params.articleId)">提交</button>
@@ -21,7 +22,157 @@
 
     </div>
 </template>
+
+<script>
+    import vueFileUpload from 'vue-file-upload'
+    export default{
+        props:['articleId', 'edit'],
+        data(){
+            return{
+                articleTitle: '',
+                articleCtxMd:'',
+                articleCtx: '',
+                image: '',
+                imageName: '',
+                articleData: '',
+                editArticle: false
+            }
+        },
+        mounted: function () {
+            this.initArticle();
+        },
+        watch:{
+            articleId: function () {
+                this.initArticle();
+            }
+        },
+        methods: {
+            initArticle: function () {
+                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
+                this.$http.get(getArticleUrl, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            this.articleData = res.data;
+                            this.articleTitle = this.articleData.title;
+                            this.articleCtxMd = this.articleData.articleCtx;
+                            this.articleCtx = markdown.toHTML(this.articleCtxMd);
+                        },
+                        function (res) {
+
+                        }
+                    )
+            },
+            submitArticle: function (articleId) {
+                var vm = this;
+                var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
+                var articleUpdateData = {
+                    title: this.$data.articleTitle,
+                    articleCtx: this.$data.articleCtxMd
+                };
+                this.$http.post(articleUpdateUrl, articleUpdateData, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var articleUpdateStatus = res.data.updateStatus;
+                            if (articleUpdateStatus == 'success') {
+                                vm.getArticleData();
+                                vm.editArticle = false;
+                                alert('修改文章成功');
+                            } else{
+                                alert('修改文章失败1');
+                            }
+                        },
+                        function (res) {
+                            alert('修改文章失败2');
+                        }
+                    )
+            },
+            // 当文件改变时
+            onFileChange: function (e) {
+                var files = e.target.files || e.dataTransfer.files;
+//                this.articleCtx += e.target.files[0].name;
+                console.log(e.target.files[0].name);
+                this.imageName = e.target.files[0].name;
+                if (!files.length)return;
+                this.createImage(files);
+            },
+            // 将图片转为base64
+            createImage: function (file) {
+                if(typeof FileReader==='undefined'){
+                    alert('您的浏览器不支持图片上传，请升级您的浏览器');
+                    return false;
+                }
+                var vm = this; //作用域
+                var reader = new FileReader();
+                reader.readAsDataURL(file[0]);
+                reader.onload =function(e){
+                    vm.image = e.target.result;
+                    vm.uploadImage();
+                };
+            },
+            // 上传图片
+            uploadImage: function () {
+                var vm = this;
+                var imageAddUrl = "http://127.0.0.1:3000/blogData/image";
+                var imageAddData = {
+                    imageData: this.image
+                };
+                console.log(imageAddData);
+                vm.$http.post(imageAddUrl, imageAddData, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var resImgData = res.data;
+                            var imgPath = resImgData.imgPath;
+                            var imageName = vm.imageName;
+                            console.log(imgPath);
+                            vm.articleCtx += `![${imageName}](http://127.0.0.1:3000/${imgPath})`;
+                        },
+                        function (res) {
+
+                        }
+                    );
+
+
+                /*var form = document.getElementById('form');
+                 form.submit();*/
+                /*console.log(e.target.files[0]);//图片信息
+                 var imageData = e.target.files[0];
+                 var reader = new FileReader();
+                 var imageDataReader;
+                 reader.readAsBinaryString(imageData);
+                 reader.onload = function(e){
+                 console.log(e.target.result);
+                 imageDataReader = e.target.result
+                 };
+                 */
+
+            },
+            getArticleData: function () {
+                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
+                this.$http.get(getArticleUrl, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            this.articleData = res.data;
+                            this.articleTitle = this.articleData.title;
+                            var articleCtx = this.articleData.articleCtx;
+                            this.articleCtx = markdown.toHTML(articleCtx);
+                        },
+                        function (res) {
+
+                        }
+                    )
+            },
+            editTheArticle: function () {
+                this.editArticle = true;
+            },
+            cancel: function () {
+                this.editArticle = false;
+            }
+        }
+    }
+</script>
+
 <style>
+    /*---------------markdown style-----------------*/
     table {
         margin: 10px 0 15px 0;
         border-collapse: collapse;
@@ -174,13 +325,26 @@
         }
     }
 
+    /*----------------article detail style--------------------*/
+
     .article-detail {
         height: 100%;
         padding: 20px;
     }
+    
+    .article-content {
+        width: 80%;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .editor {
+        width: 80%;
+        margin: 0 auto;
+    }
 
     .input-article-title {
-        width: 80%;
+        width: 100%;
         height: 40px;
         line-height: 40px;
         font-size: 20px;
@@ -189,7 +353,7 @@
     }
 
     .input-article-ctx {
-        width: 80%;
+        width: 100%;
         height: 500px;
         line-height: 1.5em;
         margin: 30px auto;
@@ -241,157 +405,4 @@
         margin: 0 10px;
     }
 </style>
-<script>
-    import vueFileUpload from 'vue-file-upload'
-    export default{
-        props:['articleId', 'edit'],
-        data(){
-            return{
-                articleTitle: '',
-                articleCtx: '',
-                image: '',
-                imageName: '',
-                articleData: '',
-                editArticle: false
-            }
-        },
-        mounted: function () {
-            var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
-            this.$http.get(getArticleUrl, {emulateJSON: true})
-                .then(
-                    function (res) {
-                        this.articleData = res.data;
-                        this.articleTitle = this.articleData.title;
-                        var articleCtx = this.articleData.articleCtx;
-                        this.articleCtx = markdown.toHTML(articleCtx);
-                    },
-                    function (res) {
 
-                    }
-                )
-        },
-        watch:{
-            articleId: function () {
-                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
-                this.$http.get(getArticleUrl, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            this.articleData = res.data;
-                            this.articleTitle = this.articleData.title;
-                            var articleCtx = this.articleData.articleCtx;
-                            this.articleCtx = markdown.toHTML(articleCtx);
-                        },
-                        function (res) {
-
-                        }
-                    )
-            }
-        },
-        methods: {
-            submitArticle: function (articleId) {
-                var vm = this;
-                var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
-                var articleUpdateData = {
-                    title: this.$data.articleTitle,
-                    articleCtx: this.$data.articleCtx
-                };
-                this.$http.post(articleUpdateUrl, articleUpdateData, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            var articleUpdateStatus = res.data.updateStatus
-                            if (articleUpdateStatus == 'success') {
-                                vm.getArticleData();
-                                alert('修改文章成功');
-                            } else{
-                                alert('修改文章失败1');
-                            }
-                        },
-                        function (res) {
-                            alert('修改文章失败2');
-                        }
-                    )
-            },
-            // 当文件改变时
-            onFileChange: function (e) {
-                var files = e.target.files || e.dataTransfer.files;
-//                this.articleCtx += e.target.files[0].name;
-                console.log(e.target.files[0].name);
-                this.imageName = e.target.files[0].name;
-                if (!files.length)return;
-                this.createImage(files);
-            },
-            // 将图片转为base64
-            createImage: function (file) {
-                if(typeof FileReader==='undefined'){
-                    alert('您的浏览器不支持图片上传，请升级您的浏览器');
-                    return false;
-                }
-                var vm = this; //作用域
-                var reader = new FileReader();
-                reader.readAsDataURL(file[0]);
-                reader.onload =function(e){
-                    vm.image = e.target.result;
-                    vm.uploadImage();
-                };
-            },
-            // 上传图片
-            uploadImage: function () {
-                var vm = this;
-                var imageAddUrl = "http://127.0.0.1:3000/blogData/image";
-                var imageAddData = {
-                    imageData: this.image
-                };
-                console.log(imageAddData);
-                vm.$http.post(imageAddUrl, imageAddData, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            var resImgData = res.data;
-                            var imgPath = resImgData.imgPath;
-                            var imageName = vm.imageName;
-                            console.log(imgPath);
-                            vm.articleCtx += `![${imageName}](http://127.0.0.1:3000/${imgPath})`;
-                        },
-                        function (res) {
-
-                        }
-                    );
-
-
-                /*var form = document.getElementById('form');
-                form.submit();*/
-                /*console.log(e.target.files[0]);//图片信息
-                var imageData = e.target.files[0];
-                var reader = new FileReader();
-                var imageDataReader;
-                reader.readAsBinaryString(imageData);
-                reader.onload = function(e){
-                    console.log(e.target.result);
-                    imageDataReader = e.target.result
-                };
-                   */
-
-            },
-            getArticleData: function () {
-                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
-                this.$http.get(getArticleUrl, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            this.articleData = res.data;
-                            this.articleTitle = this.articleData.title;
-                            var articleCtx = this.articleData.articleCtx;
-                            this.articleCtx = markdown.toHTML(articleCtx);
-                        },
-                        function (res) {
-
-                        }
-                    )
-            },
-            editTheArticle: function () {
-                this.editArticle = true;
-            },
-            cancel: function () {
-                this.editArticle = false;
-            }
-        }
-    }
-</script>
