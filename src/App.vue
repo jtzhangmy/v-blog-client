@@ -336,6 +336,10 @@ export default {
     cursor: default;
   }
 
+  .home-header-classify.router-link-active {
+    background-color: #0482ba;
+  }
+
   .home-header-classify:visited {
     color: #fff;
   }

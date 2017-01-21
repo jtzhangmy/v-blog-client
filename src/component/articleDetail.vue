@@ -12,8 +12,9 @@
         <div v-show="editArticle" class="editor">
             <input type="text" v-model="articleTitle" class="input-article-title">
             <textarea v-model="articleCtxMd" cols="150" rows="500" class="input-article-ctx"></textarea>
-            <input type="file" name="image" class="input-article-image" @change="onFileChange">
+            <input type="file" name="image" id="input-article-image" class="input-article-image" @change="onFileChange">
             <div class="input-article-btn">
+                <button class="input-article-img" @click="addImg()">添加图片</button>
                 <button class="input-article-submit" @click="submitArticle($route.params.articleId)">提交</button>
                 <button class="input-article-cancel" @click="cancel()">取消</button>
             </div>
@@ -124,7 +125,7 @@
                             var imgPath = resImgData.imgPath;
                             var imageName = vm.imageName;
                             console.log(imgPath);
-                            vm.articleCtx += `![${imageName}](http://127.0.0.1:3000/${imgPath})`;
+                            vm.articleCtxMd += `![${imageName}](http://127.0.0.1:3000/${imgPath})`;
                         },
                         function (res) {
 
@@ -163,6 +164,10 @@
             },
             editTheArticle: function () {
                 this.editArticle = true;
+            },
+            addImg: function () {
+                var fileBtn = document.getElementById('input-article-image');
+                fileBtn.click();
             },
             cancel: function () {
                 this.editArticle = false;
@@ -302,7 +307,9 @@
     }
     
     img {
+        max-width: 100%;
         display: block;
+        margin: 0 auto;
     }
     
     * {
@@ -330,6 +337,7 @@
     .article-detail {
         height: 100%;
         padding: 20px;
+        overflow-y: scroll;
     }
     
     .article-content {
@@ -363,13 +371,24 @@
     }
 
     .input-article-image {
-
+        display: none !important;
     }
 
     .input-article-btn {
         width: 100%;
         text-align: center;
         margin: 20px 0;
+    }
+
+    .input-article-img {
+        display: inline-block;
+        width: 80px;
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #3dd50e;
+        color: #fff;
+        margin: 0 10px;
     }
 
     .input-article-submit {

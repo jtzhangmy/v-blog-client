@@ -74,6 +74,7 @@
         display: block;
         width: 100%;
         height: 26px;
+        line-height: 26px;
         text-decoration: none;
         cursor: pointer ;
         color: #6d6d6d;
@@ -94,7 +95,12 @@
 
     .home-aside-tt:hover{
         text-decoration: none;
-        color: #2a6496;
+        color: #259ffe;
+    }
+
+    .home-aside-tt.router-link-active {
+        color: #259ffe;
+        background: #eee;
     }
 
     .home-aside-add-icon {
