@@ -187,6 +187,7 @@ export default {
   body {
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
   }
+
   *{
     margin: 0;
     padding: 0;
@@ -363,7 +364,7 @@ export default {
     position: absolute;
     z-index: 9005;
     top: -10px;
-    right: 0;
+    right: 5px;
     cursor: pointer;
   }
 

@@ -1,16 +1,19 @@
 <template>
     <div class="article-detail">
         <div v-show="!editArticle" class="article-content">
-            <h2>{{articleTitle}}</h2>
+            <div class="article-title-outer">
+                <h2 class="article-title">{{articleTitle}}</h2>
+                <button class="article-edit" v-if='edit' @click="editTheArticle()">编辑文章</button>
+            </div>
             <div>
-                <span>作者:{{articleData.author}}</span>
+                <span class="article-author">作者:{{articleData.author}}</span>
+                <span class="article-time">创建时间:{{articleData.createTime}}</span>
             </div>
             <div v-html="articleCtx"></div>
-            <button class="article-edit" v-if='edit' @click="editTheArticle()">编辑文章</button>
         </div>
         
         <div v-show="editArticle" class="editor">
-            <input type="text" v-model="articleTitle" class="input-article-title">
+            <input type="text" v-model="articleTitle" class="input-article-title" @change="changeTitle">
             <textarea v-model="articleCtxMd" cols="150" rows="500" class="input-article-ctx"></textarea>
             <input type="file" name="image" id="input-article-image" class="input-article-image" @change="onFileChange">
             <div class="input-article-btn">
@@ -53,21 +56,25 @@
                 this.$http.get(getArticleUrl, {emulateJSON: true})
                     .then(
                         function (res) {
-                            this.articleData = res.data;
-                            this.articleTitle = this.articleData.title;
-                            this.articleCtxMd = this.articleData.articleCtx;
-                            this.articleCtx = markdown.toHTML(this.articleCtxMd);
+                            this.$data.articleData = res.data;
+                            this.$data.articleTitle = this.articleData.title;
+                            this.$data.articleCtxMd = this.articleData.articleCtx;
+                            this.$data.articleCtx = markdown.toHTML(this.articleCtxMd);
                         },
                         function (res) {
 
                         }
                     )
             },
+            changeTitle: function () {
+                this.$root.eventHub.$emit('changeTitle', this.$data.articleTitle);
+            },
             submitArticle: function (articleId) {
                 var vm = this;
                 var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
                 var articleUpdateData = {
                     title: this.$data.articleTitle,
+                    classifyId: this.$route.params.classify,
                     articleCtx: this.$data.articleCtxMd
                 };
                 this.$http.post(articleUpdateUrl, articleUpdateData, {emulateJSON: true})
@@ -339,6 +346,36 @@
         padding: 20px;
         overflow-y: scroll;
     }
+
+    .article-title-outer {
+        width: 100%;
+        height: 36px;
+        margin: 15px 0;
+    }
+
+    .article-title {
+        float: left;
+        margin: 0;
+    }
+
+    .article-edit {
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #00b3ee;
+        color: #fff;
+        margin: 3px 20px;
+    }
+
+    .article-author {
+
+    }
+
+    .article-time {
+        margin-left: 10px;
+    }
     
     .article-content {
         width: 80%;
@@ -413,15 +450,5 @@
         margin: 0 10px;
     }
 
-    .article-edit {
-        display: inline-block;
-        width: 60px;
-        height: 30px;
-        border-radius: 5px;
-        border: none;
-        background-color: #00b3ee;
-        color: #fff;
-        margin: 0 10px;
-    }
 </style>
 

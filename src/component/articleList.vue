@@ -55,6 +55,88 @@
         </div>
     </div>
 </template>
+<script>
+    export default{
+        props:['classifyId', 'edit'],
+        data(){
+            return{
+                addingArticle: false,
+                articles: [],
+                articleType: 'type1',
+                articleAddTitle: ''
+            }
+        },
+        mounted: function () {
+            this.initArticleLidt();
+            this.$root.eventHub.$on('YOUR_EVENT_NAME', (yourData)=>{
+              handle(yourData)
+            } )
+        },
+        watch: {
+            //监听路由改变
+            classifyId: function () {
+                this.initArticleLidt();
+            }
+        },
+        methods: {
+            initArticleLidt: function () {
+                var articleListUrl = 'http://127.0.0.1:3000/blogData/articleList/' + this.classifyId;
+                this.$http.get(articleListUrl, {}, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var classifyData = res.data;
+                            this.articles = classifyData[0].articleList;
+                            console.log(classifyData[0].articleList)
+                        },
+                        function (res) {
+                            console.error('get classify error');
+                        }
+                    )
+            },
+            showAddArticle: function () {
+                this.addingArticle = true;
+            },
+            // 添加文章名称
+            addArticleTitle: function (classify) {
+                var articleAddUrl = "http://127.0.0.1:3000/blogData/articleList/" + classify;
+                var articleAddData = {
+                    title: this.articleAddTitle,
+                    author: Cookie.get('username'),
+                    type: this.articleType,
+                    classify: classify
+                };
+                this.$http.post(articleAddUrl, articleAddData, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var articleAddStatus = res.data;
+                            if (articleAddStatus.result == 'success') {
+                                console.log(articleAddStatus);
+                                this.articles.push(
+                                    {
+                                        articleId: articleAddStatus.articleId,
+                                        type: articleAddStatus.articleType,
+                                        title: articleAddStatus.articleTitle
+                                    }
+                                );
+                                this.addingArticle = false;
+                                console.log(this.articles);
+
+                            } else {
+                                alert('插入分类失败1');
+                            }
+                        },
+                        function (res) {
+                            alert('插入分类失败2');
+                        }
+                    )
+            },
+            addArticleCancel: function () {
+                this.addingArticle = false;
+            }
+        }
+    }
+</script>
+
 <style>
     .article-list {
         padding-top: 50px;
@@ -182,89 +264,4 @@
 
 
 </style>
-<script>
-    export default{
-        props:['classifyId', 'edit'],
-        data(){
-            return{
-                addingArticle: false,
-                articles: [],
-                articleType: 'type1',
-                articleAddTitle: ''
-            }
-        },
-        mounted: function () {
-            var articleListUrl = 'http://127.0.0.1:3000/blogData/articleList/' + this.classifyId;
-            this.$http.get(articleListUrl, {}, {emulateJSON: true})
-                .then(
-                    function (res) {
-                        var classifyData = res.data;
-                        this.articles = classifyData[0].articleList;
-//                        console.log(classifyData[0].articleList)
-                    },
-                    function (res) {
-                        console.error('get classify error');
-                    }
-                )
-        },
-        watch: {
-            //监听路由改变
-            classifyId: function () {
-                var articleListUrl = 'http://127.0.0.1:3000/blogData/articleList/' + this.classifyId;
-                this.$http.get(articleListUrl, {}, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            var classifyData = res.data;
-                            this.articles = classifyData[0].articleList;
-                            console.log(classifyData[0].articleList)
-                        },
-                        function (res) {
-                            console.error('get classify error');
-                        }
-                    )
-            }
-        },
-        methods: {
-            showAddArticle: function () {
-                this.addingArticle = true;
-            },
-            // 添加文章名称
-            addArticleTitle: function (classify) {
-                var articleAddUrl = "http://127.0.0.1:3000/blogData/articleList/" + classify;
-                var articleAddData = {
-                    title: this.articleAddTitle,
-                    author: Cookie.get('username'),
-                    type: this.articleType,
-                    classify: classify
-                };
-                this.$http.post(articleAddUrl, articleAddData, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            var articleAddStatus = res.data;
-                            if (articleAddStatus.result == 'success') {
-                                console.log(articleAddStatus);
-                                this.articles.push(
-                                    {
-                                        articleId: articleAddStatus.articleId,
-                                        type: articleAddStatus.articleType,
-                                        title: articleAddStatus.articleTitle
-                                    }
-                                );
-                                this.addingArticle = false;
-                                console.log(this.articles);
 
-                            } else {
-                                alert('插入分类失败1');
-                            }
-                        },
-                        function (res) {
-                            alert('插入分类失败2');
-                        }
-                    )
-            },
-            addArticleCancel: function () {
-                this.addingArticle = false;
-            }
-        }
-    }
-</script>
