@@ -2,7 +2,7 @@
     <div class="article-list">
         <div class="home-aside col-md-2">
             <h3 class="home-aside-title">目录</h3>
-            <div v-for="(article, index) in articles" >
+            <div v-for="(article, index) in articles" class="home-aside-out">
                 <router-link
                     v-if="article.type == 'type1'"
                     :to="{ path: '/classify/' + classifyId + '/' + article.articleId + '?page=' + index}"
@@ -21,6 +21,8 @@
                     class="home-aside-tt home-aside-t3" >
                     {{article.title}}
                 </router-link>
+                <i class="ion-ios-close-empty home-aside-remove"
+                   @click.stop="removeArticle(index, classifyId, article.articleId)"></i>
             </div>
             <div class="home-aside-add-article" v-if="edit">
                 <span class="ion-ios-plus-empty home-aside-add-icon" @click="showAddArticle()"></span>
@@ -87,7 +89,8 @@
                         function (res) {
                             var classifyData = res.data;
                             this.$data.articles = classifyData[0].articleList;
-                            console.log(this.$data.articles)
+                            console.log(this.$data.articles);
+                            console.log(111);
                         },
                         function (res) {
                             console.error('get classify error');
@@ -133,6 +136,22 @@
             },
             addArticleCancel: function () {
                 this.addingArticle = false;
+            },
+            removeArticle: function (index, classifyId, articleId) {
+                var articleDeleteUrl = "http://127.0.0.1:3000/blogData/article/delete";
+                var articleDeleteData = {
+                    classifyId: classifyId,
+                    articleId: articleId
+                };
+                this.$http.post(articleDeleteUrl, articleDeleteData)
+                    .then(
+                        function (res) {
+                            console.log(res.data)
+                        },
+                        function (res) {
+
+                        }
+                    )
             }
         }
     }
@@ -153,6 +172,10 @@
         height: 100%;
     }
 
+    .home-aside-out {
+        position: relative;
+    }
+
     .home-aside-tt{
         display: block;
         width: 100%;
@@ -162,6 +185,17 @@
         cursor: pointer ;
         color: #6d6d6d;
         font-size: 18px;
+    }
+
+    .home-aside-remove {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 26px;
+        height: 26px;
+        font-size: 30px;
+        text-align: center;
+        line-height: 26px;
     }
 
     .home-aside-t1 {

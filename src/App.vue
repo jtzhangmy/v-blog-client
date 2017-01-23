@@ -392,4 +392,13 @@
     border: 1px solid #ddd;
   }
 
+  .home-header-input {
+    width: 80%;
+    margin: 0 10%;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 5px;
+    padding-left: 10px;
+  }
+
 </style>
