@@ -2,22 +2,22 @@
     <div class="article-list">
         <div class="home-aside col-md-2">
             <h3 class="home-aside-title">目录</h3>
-            <div v-for="article in articles" >
+            <div v-for="(article, index) in articles" >
                 <router-link
                     v-if="article.type == 'type1'"
-                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId}"
+                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId + '?page=' + index}"
                     class="home-aside-tt home-aside-t1" >
                     {{article.title}}
                 </router-link>
                 <router-link
                     v-if="article.type == 'type2'"
-                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId}"
+                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId + '?page=' + index}"
                     class="home-aside-tt home-aside-t2" >
                     {{article.title}}
                 </router-link>
                 <router-link
                     v-if="article.type == 'type3'"
-                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId}"
+                    :to="{ path: '/classify/' + classifyId + '/' + article.articleId + '?page=' + index}"
                     class="home-aside-tt home-aside-t3" >
                     {{article.title}}
                 </router-link>
@@ -26,7 +26,11 @@
                 <span class="ion-ios-plus-empty home-aside-add-icon" @click="showAddArticle()"></span>
             </div>
         </div>
-        <router-view class="col-md-10" :articleId="this.$route.params.articleId" :edit="edit"></router-view>
+        <router-view class="col-md-10"
+                     :articleId="this.$route.params.articleId"
+                     :edit="edit"
+                     :articles.sync="articles">
+        </router-view>
         <!--添加文章-->
         <div class="home-header-add-article" v-show="addingArticle">
             <h3 class="home-header-add-title">添加文章</h3>
@@ -68,9 +72,6 @@
         },
         mounted: function () {
             this.initArticleLidt();
-            this.$root.eventHub.$on('YOUR_EVENT_NAME', (yourData)=>{
-              handle(yourData)
-            } )
         },
         watch: {
             //监听路由改变
@@ -85,8 +86,8 @@
                     .then(
                         function (res) {
                             var classifyData = res.data;
-                            this.articles = classifyData[0].articleList;
-                            console.log(classifyData[0].articleList)
+                            this.$data.articles = classifyData[0].articleList;
+                            console.log(this.$data.articles)
                         },
                         function (res) {
                             console.error('get classify error');

@@ -69,13 +69,14 @@
 
   var Cookie = new cookie();
 
-export default {
+  export default {
   name: 'app',
   data () {
     return {
       classifies: [],
       userLogin: false,
-      username: Cookie.get('username'),
+      username: '',
+      isFirstTime: true,
       editing: false,
       editName: '编辑',
       addingClassify: false,
@@ -88,8 +89,7 @@ export default {
         .then(
             function (res) {
               var classifyData = res.data;
-              this.classifies = classifyData;
-//              console.log(classifyData)
+              this.$data.classifies = classifyData;
             },
             function (res) {
               console.error('get classify error');
@@ -97,6 +97,14 @@ export default {
         );
 
     if(Cookie.get('username')) {
+      this.$data.username = Cookie.get('username');
+      this.userLogin = true;
+    }
+  },
+  updated: function () {
+    if(Cookie.get('username') && this.$data.isFirstTime) {
+      this.$data.isFirstTime = false;
+      this.$data.username = Cookie.get('username');
       this.userLogin = true;
     }
   },
@@ -116,6 +124,7 @@ export default {
       Cookie.remove('userId');
       this.userLogin = false;
       this.editing = false;
+      this.$data.isFirstTime = true;
     },
     //插入分类
     addClassify: function () {

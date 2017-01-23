@@ -8,12 +8,13 @@
             <div>
                 <span class="article-author">作者:{{articleData.author}}</span>
                 <span class="article-time">创建时间:{{articleData.createTime}}</span>
+                <span class="article-red-num">阅读数:{{articleData.readNum}}</span>
             </div>
             <div v-html="articleCtx"></div>
         </div>
         
         <div v-show="editArticle" class="editor">
-            <input type="text" v-model="articleTitle" class="input-article-title" @change="changeTitle">
+            <input type="text" v-model="articleTitle" class="input-article-title">
             <textarea v-model="articleCtxMd" cols="150" rows="500" class="input-article-ctx"></textarea>
             <input type="file" name="image" id="input-article-image" class="input-article-image" @change="onFileChange">
             <div class="input-article-btn">
@@ -30,16 +31,18 @@
 <script>
     import vueFileUpload from 'vue-file-upload'
     export default{
-        props:['articleId', 'edit'],
+        props:['articles', 'articleId', 'edit'],
         data(){
             return{
                 articleTitle: '',
+                cacheTitle: '',
                 articleCtxMd:'',
                 articleCtx: '',
                 image: '',
                 imageName: '',
                 articleData: '',
-                editArticle: false
+                editArticle: false,
+                changeTitle: false
             }
         },
         mounted: function () {
@@ -48,6 +51,16 @@
         watch:{
             articleId: function () {
                 this.initArticle();
+            },
+            articleTitle: function () {
+                if (this.$data.changeTitle) {
+                    this.articles[this.$route.query.page].title = this.$data.articleTitle;
+                }
+            },
+            edit: function () {
+                if (this.edit == false) {
+                    this.cancel();
+                }
             }
         },
         methods: {
@@ -58,39 +71,12 @@
                         function (res) {
                             this.$data.articleData = res.data;
                             this.$data.articleTitle = this.articleData.title;
+                            this.$data.cacheTitle = this.articleData.title;
                             this.$data.articleCtxMd = this.articleData.articleCtx;
                             this.$data.articleCtx = markdown.toHTML(this.articleCtxMd);
                         },
                         function (res) {
 
-                        }
-                    )
-            },
-            changeTitle: function () {
-                this.$root.eventHub.$emit('changeTitle', this.$data.articleTitle);
-            },
-            submitArticle: function (articleId) {
-                var vm = this;
-                var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
-                var articleUpdateData = {
-                    title: this.$data.articleTitle,
-                    classifyId: this.$route.params.classify,
-                    articleCtx: this.$data.articleCtxMd
-                };
-                this.$http.post(articleUpdateUrl, articleUpdateData, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            var articleUpdateStatus = res.data.updateStatus;
-                            if (articleUpdateStatus == 'success') {
-                                vm.getArticleData();
-                                vm.editArticle = false;
-                                alert('修改文章成功');
-                            } else{
-                                alert('修改文章失败1');
-                            }
-                        },
-                        function (res) {
-                            alert('修改文章失败2');
                         }
                     )
             },
@@ -154,30 +140,50 @@
                  */
 
             },
-            getArticleData: function () {
-                var getArticleUrl = 'http://127.0.0.1:3000/blogData/articleDetail/' + this.$route.params.articleId;
-                this.$http.get(getArticleUrl, {emulateJSON: true})
-                    .then(
-                        function (res) {
-                            this.articleData = res.data;
-                            this.articleTitle = this.articleData.title;
-                            var articleCtx = this.articleData.articleCtx;
-                            this.articleCtx = markdown.toHTML(articleCtx);
-                        },
-                        function (res) {
-
-                        }
-                    )
-            },
+            // 编辑文章
             editTheArticle: function () {
                 this.editArticle = true;
+                this.$data.changeTitle = true;
             },
+            // 添加图片
             addImg: function () {
                 var fileBtn = document.getElementById('input-article-image');
                 fileBtn.click();
             },
+            // 提交文章
+            submitArticle: function (articleId) {
+                this.$data.changeTitle = false;
+                var vm = this;
+                var articleUpdateUrl = "http://127.0.0.1:3000/blogData/articleDetail/" + articleId;
+                var articleUpdateData = {
+                    title: this.$data.articleTitle,
+                    classifyId: this.$route.params.classify,
+                    articleCtx: this.$data.articleCtxMd
+                };
+                this.$http.post(articleUpdateUrl, articleUpdateData, {emulateJSON: true})
+                    .then(
+                        function (res) {
+                            var articleUpdateStatus = res.data.updateStatus;
+                            if (articleUpdateStatus == 'success') {
+                                vm.initArticle();
+                                vm.editArticle = false;
+                                this.articles[this.$route.query.page].title = this.$data.articleTitle;
+                                alert('修改文章成功');
+                            } else{
+                                alert('修改文章失败1');
+                            }
+                        },
+                        function (res) {
+                            alert('修改文章失败2');
+                        }
+                    )
+            },
+            // 取消
             cancel: function () {
                 this.editArticle = false;
+                this.$data.changeTitle = false;
+                this.$data.articleTitle = this.$data.cacheTitle;
+                this.articles[this.$route.query.page].title = this.$data.cacheTitle;
             }
         }
     }
@@ -326,7 +332,6 @@
     @media screen and (min-width: 914px) {
         body {
             width: 854px;
-            margin:10px auto;
         }
     }
     
@@ -360,7 +365,7 @@
 
     .article-edit {
         display: inline-block;
-        width: 60px;
+        width: 70px;
         height: 30px;
         border-radius: 5px;
         border: none;
@@ -374,6 +379,10 @@
     }
 
     .article-time {
+        margin-left: 10px;
+    }
+
+    .article-red-num {
         margin-left: 10px;
     }
     

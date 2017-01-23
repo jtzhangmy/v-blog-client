@@ -100,6 +100,7 @@
                             console.log(res.data);
                             if(loginStatus == 'success') {
                                 Cookie.set('username', this.username);
+                                Cookie.set('userId', userId);
                                 this.$router.push({path: '/'});
                             }
                         },
