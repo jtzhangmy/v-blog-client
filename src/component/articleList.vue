@@ -22,7 +22,8 @@
                     {{article.title}}
                 </router-link>
                 <i class="ion-ios-close-empty home-aside-remove"
-                   @click.stop="removeArticle(index, classifyId, article.articleId)"></i>
+                   @click.stop="removeArticle(index, classifyId, article.articleId)"
+                   v-if="edit"></i>
             </div>
             <div class="home-aside-add-article" v-if="edit">
                 <span class="ion-ios-plus-empty home-aside-add-icon" @click="showAddArticle()"></span>
@@ -90,7 +91,6 @@
                             var classifyData = res.data;
                             this.$data.articles = classifyData[0].articleList;
                             console.log(this.$data.articles);
-                            console.log(111);
                         },
                         function (res) {
                             console.error('get classify error');
@@ -146,10 +146,15 @@
                 this.$http.post(articleDeleteUrl, articleDeleteData)
                     .then(
                         function (res) {
-                            console.log(res.data)
+                            var resData = res.data;
+                            if(resData.deleteStatus == 'success') {
+                                this.$data.articles.splice(resData.removeIndex, 1);
+                            } else {
+                                alert('删除失败1');
+                            }
                         },
                         function (res) {
-
+                            alert('删除失败2');
                         }
                     )
             }
