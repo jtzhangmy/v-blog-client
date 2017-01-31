@@ -1,7 +1,6 @@
 # v-blog
 
-> 这是一个基于vue全家桶的简易博客系统的客户端，服务端请clong[这里](https://github.com/jtzhangmy/vueBlog)
-> 在运行客户端之前，请先启动mongo服务，然后启动服务端，最后再启动客户端。
+> 这是一个基于vue全家桶的简易博客系统的客户端，服务端请clong[这里](https://github.com/jtzhangmy/express-blog-server)。在运行客户端之前，请先启动mongo服务，然后启动服务端，最后再启动客户端。
 
 ## Build Setup
 
